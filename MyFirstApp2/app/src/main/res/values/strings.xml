@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MyFirstApp</string>
+    <!-- %1$s is the name of the person being greeted -->
+    <string name="greeting_text">Hello %1$s!</string>
+    <!-- %1$s is the name of the sender -->
+    <string name="signature_text">From %1$s</string>
+</resources>
