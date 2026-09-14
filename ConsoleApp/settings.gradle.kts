@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ConsoleApp"
 include(":app")
- 
+include(":console")
