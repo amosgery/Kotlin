@@ -19,9 +19,7 @@ class TaskViewModel : ViewModel() {
     }
 
     fun toggleTaskCompletion(task: Task) {
-        val index = _tasks.indexOf(task)
-        if (index != -1) {
-            _tasks[index] = task.copy(isCompleted = !task.isCompleted)
-        }
+        task.isCompleted = !task.isCompleted
+
     }
 }

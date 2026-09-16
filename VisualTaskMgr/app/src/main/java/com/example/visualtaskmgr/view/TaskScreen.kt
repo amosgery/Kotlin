@@ -1,4 +1,4 @@
-package com.example.visualtaskmgr.ui
+package com.example.visualtaskmgr.view
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,8 +15,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visualtaskmgr.model.Task
 import com.example.visualtaskmgr.viewmodel.TaskViewModel
 
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.visualtaskmgr.view.theme.VisualTaskMgrTheme
+
 @Composable
 fun TaskScreen(viewModel: TaskViewModel = viewModel()) {
+    TaskScreenContent(
+        tasks = viewModel.tasks,
+        onAddTask = { viewModel.addTask(it) },
+        onToggleTask = { viewModel.toggleTaskCompletion(it) },
+        onDeleteTask = { viewModel.removeTask(it) }
+    )
+}
+
+@Composable
+fun TaskScreenContent(
+    tasks: List<Task>,
+    onAddTask: (String) -> Unit,
+    onToggleTask: (Task) -> Unit,
+    onDeleteTask: (Task) -> Unit
+) {
     var taskTitle by remember { mutableStateOf("") }
 
     Column(
@@ -42,7 +60,7 @@ fun TaskScreen(viewModel: TaskViewModel = viewModel()) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = {
-                viewModel.addTask(taskTitle)
+                onAddTask(taskTitle)
                 taskTitle = ""
             }) {
                 Text("Add")
@@ -55,11 +73,11 @@ fun TaskScreen(viewModel: TaskViewModel = viewModel()) {
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(viewModel.tasks, key = { it.id }) { task ->
+            items(tasks, key = { it.id }) { task ->
                 TaskItem(
                     task = task,
-                    onToggle = { viewModel.toggleTaskCompletion(task) },
-                    onDelete = { viewModel.removeTask(task) }
+                    onToggle = { onToggleTask(task) },
+                    onDelete = { onDeleteTask(task) }
                 )
             }
         }
@@ -93,6 +111,26 @@ fun TaskItem(
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete Task")
             }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TaskScreenPreview() {
+    val sampleTasks = listOf(
+        Task(title = "Buy groceries", isCompleted = false),
+        Task(title = "Finish project", isCompleted = true),
+        Task(title = "Go for a run", isCompleted = false)
+    )
+    VisualTaskMgrTheme {
+        Surface {
+            TaskScreenContent(
+                tasks = sampleTasks,
+                onAddTask = {},
+                onToggleTask = {},
+                onDeleteTask = {}
+            )
         }
     }
 }

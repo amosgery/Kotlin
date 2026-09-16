@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.example.visualtaskmgr.ui.TaskScreen
-import com.example.visualtaskmgr.ui.theme.VisualTaskMgrTheme
+import com.example.visualtaskmgr.view.TaskScreen
+import com.example.visualtaskmgr.view.theme.VisualTaskMgrTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

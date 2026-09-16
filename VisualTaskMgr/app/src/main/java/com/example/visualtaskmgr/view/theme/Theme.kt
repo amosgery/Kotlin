@@ -1,6 +1,5 @@
-package com.example.visualtaskmgr.ui.theme
+package com.example.visualtaskmgr.view.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

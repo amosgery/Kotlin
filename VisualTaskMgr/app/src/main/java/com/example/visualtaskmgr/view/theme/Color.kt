@@ -1,4 +1,4 @@
-package com.example.visualtaskmgr.ui.theme
+package com.example.visualtaskmgr.view.theme
 
 import androidx.compose.ui.graphics.Color
 
