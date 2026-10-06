@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visualtaskmgr.model.Priority
 import com.example.visualtaskmgr.model.Task
@@ -50,13 +51,29 @@ fun TaskScreenContent(
         var editedTitle by remember(task) { mutableStateOf(task.title) }
         var editedPriority by remember(task) { mutableStateOf(task.priority) }
 
-        AlertDialog(
-            onDismissRequest = { taskToEdit = null },
-            title = { Text(text = "Edit Task") },
-            text = {
+        Dialog(
+            onDismissRequest = { taskToEdit = null }
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Text(
+                        text = "Edit Task",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
                     OutlinedTextField(
                         value = editedTitle,
                         onValueChange = { editedTitle = it },
@@ -65,40 +82,51 @@ fun TaskScreenContent(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Text(text = "Priority", style = MaterialTheme.typography.labelLarge)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(text = "Priority", style = MaterialTheme.typography.labelLarge)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Priority.entries.forEach { priority ->
+                                FilterChip(
+                                    selected = editedPriority == priority,
+                                    onClick = { editedPriority = priority },
+                                    label = {
+                                        Text(
+                                            priority.name.lowercase()
+                                                .replaceFirstChar { it.uppercase() }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Priority.entries.forEach { priority ->
-                            FilterChip(
-                                selected = editedPriority == priority,
-                                onClick = { editedPriority = priority },
-                                label = { Text(priority.name.lowercase().replaceFirstChar { it.uppercase() }) }
-                            )
+                        TextButton(onClick = { taskToEdit = null }) {
+                            Text("Cancel")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (editedTitle.isNotBlank()) {
+                                    onEditTask(task, editedTitle.trim(), editedPriority)
+                                    Toast.makeText(context, "Task updated", Toast.LENGTH_SHORT).show()
+                                    taskToEdit = null
+                                }
+                            }
+                        ) {
+                            Text("Save")
                         }
                     }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (editedTitle.isNotBlank()) {
-                            onEditTask(task, editedTitle.trim(), editedPriority)
-                            Toast.makeText(context, "Task updated", Toast.LENGTH_SHORT).show()
-                            taskToEdit = null
-                        }
-                    }
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { taskToEdit = null }) {
-                    Text("Cancel")
                 }
             }
-        )
+        }
     }
 
     taskToDelete?.let { task ->
