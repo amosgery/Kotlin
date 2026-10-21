@@ -148,7 +148,7 @@ fun TaskScreenContent(
                                         editedTargetDateTime.dayOfMonth
                                     ).show()
                                 },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.wrapContentWidth()
                             ) {
                                 Text(editedTargetDateTime.format(dateFormatter))
                             }
