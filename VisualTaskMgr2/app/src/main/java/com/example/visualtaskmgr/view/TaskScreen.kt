@@ -12,10 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.visualtaskmgr.model.Priority
@@ -26,6 +30,45 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
+@Composable
+fun AutoResizedText(
+    text: String,
+    style: TextStyle = LocalTextStyle.current,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    textDecoration: TextDecoration? = null
+) {
+    var resizedTextStyle by remember(text, style) { mutableStateOf(style) }
+    var shouldDraw by remember(text, style) { mutableStateOf(false) }
+
+    Text(
+        text = text,
+        color = color,
+        textDecoration = textDecoration,
+        modifier = modifier.drawWithContent {
+            if (shouldDraw) {
+                drawContent()
+            }
+        },
+        softWrap = false,
+        maxLines = 1,
+        style = resizedTextStyle,
+        onTextLayout = { result ->
+            if (result.didOverflowWidth) {
+                if (resizedTextStyle.fontSize.isSp && resizedTextStyle.fontSize.value > 8f) {
+                    resizedTextStyle = resizedTextStyle.copy(
+                        fontSize = (resizedTextStyle.fontSize.value * 0.9f).sp
+                    )
+                } else {
+                    shouldDraw = true
+                }
+            } else {
+                shouldDraw = true
+            }
+        }
+    )
+}
 
 @Composable
 fun TaskScreen(viewModel: TaskViewModel = viewModel()) {
@@ -86,7 +129,7 @@ fun TaskScreenContent(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
+                    AutoResizedText(
                         text = "Edit Task Details",
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -94,7 +137,9 @@ fun TaskScreenContent(
                     OutlinedTextField(
                         value = editedTitle,
                         onValueChange = { editedTitle = it },
-                        label = { Text("Task Title") },
+                        label = {
+                            AutoResizedText(text = "Task Title")
+                        },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -102,26 +147,31 @@ fun TaskScreenContent(
                     OutlinedTextField(
                         value = editedDescription,
                         onValueChange = { editedDescription = it },
-                        label = { Text("Description / Notes") },
+                        label = {
+                            AutoResizedText(text = "Description / Notes")
+                        },
                         minLines = 2,
                         maxLines = 4,
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "Priority", style = MaterialTheme.typography.labelLarge)
+                        AutoResizedText(
+                            text = "Priority",
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Priority.entries.forEach { priority ->
                                 FilterChip(
+                                    modifier = Modifier.wrapContentWidth(),
                                     selected = editedPriority == priority,
                                     onClick = { editedPriority = priority },
                                     label = {
-                                        Text(
-                                            priority.name.lowercase()
-                                                .replaceFirstChar { it.uppercase() }
+                                        AutoResizedText(
+                                            text = priority.name.lowercase().replaceFirstChar { it.uppercase() }
                                         )
                                     }
                                 )
@@ -130,7 +180,10 @@ fun TaskScreenContent(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "Target Completion Date & Time", style = MaterialTheme.typography.labelLarge)
+                        AutoResizedText(
+                            text = "Target Completion Date & Time",
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -150,7 +203,7 @@ fun TaskScreenContent(
                                 },
                                 modifier = Modifier.wrapContentWidth()
                             ) {
-                                Text(editedTargetDateTime.format(dateFormatter))
+                                AutoResizedText(text = editedTargetDateTime.format(dateFormatter))
                             }
 
                             OutlinedButton(
@@ -159,16 +212,19 @@ fun TaskScreenContent(
                                         context,
                                         { _, hourOfDay, minute ->
                                             val newTime = LocalTime.of(hourOfDay, minute)
-                                            editedTargetDateTime = LocalDateTime.of(editedTargetDateTime.toLocalDate(), newTime)
+                                            editedTargetDateTime = LocalDateTime.of(
+                                                editedTargetDateTime.toLocalDate(),
+                                                newTime,
+                                            )
                                         },
                                         editedTargetDateTime.hour,
                                         editedTargetDateTime.minute,
-                                        true
+                                        true,
                                     ).show()
                                 },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.wrapContentWidth()
                             ) {
-                                Text(editedTargetDateTime.format(timeFormatter))
+                                AutoResizedText(text = editedTargetDateTime.format(timeFormatter))
                             }
                         }
                     }
@@ -179,7 +235,7 @@ fun TaskScreenContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(onClick = { taskToEdit = null }) {
-                            Text("Cancel")
+                            AutoResizedText(text = "Cancel")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -197,7 +253,7 @@ fun TaskScreenContent(
                                 }
                             }
                         ) {
-                            Text("Save")
+                            AutoResizedText(text = "Save")
                         }
                     }
                 }
@@ -209,7 +265,9 @@ fun TaskScreenContent(
     taskToDelete?.let { task ->
         AlertDialog(
             onDismissRequest = { taskToDelete = null },
-            title = { Text(text = "Delete Task") },
+            title = {
+                AutoResizedText(text = "Delete Task")
+            },
             text = { Text(text = "Are you sure you want to delete \"${task.title}\"?") },
             confirmButton = {
                 TextButton(
@@ -219,7 +277,7 @@ fun TaskScreenContent(
                         taskToDelete = null
                     }
                 ) {
-                    Text("Delete")
+                    AutoResizedText(text = "Delete")
                 }
             },
             dismissButton = {
@@ -227,7 +285,7 @@ fun TaskScreenContent(
                     Toast.makeText(context, "Delete cancelled", Toast.LENGTH_LONG).show()
                     taskToDelete = null
                 }) {
-                    Text("Cancel")
+                    AutoResizedText(text = "Cancel")
                 }
             }
         )
@@ -238,7 +296,7 @@ fun TaskScreenContent(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
+        AutoResizedText(
             text = "Task Manager",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -247,7 +305,10 @@ fun TaskScreenContent(
         OutlinedTextField(
             value = taskTitle,
             onValueChange = { taskTitle = it },
-            label = { Text("New Task Title") },
+            label = {
+                AutoResizedText(text = "New Task Title")
+            },
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -266,7 +327,11 @@ fun TaskScreenContent(
                     FilterChip(
                         selected = newTaskPriority == priority,
                         onClick = { newTaskPriority = priority },
-                        label = { Text(priority.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                        label = {
+                            AutoResizedText(
+                                text = priority.name.lowercase().replaceFirstChar { it.uppercase() }
+                            )
+                        }
                     )
                 }
             }
@@ -279,7 +344,7 @@ fun TaskScreenContent(
                     newTaskTargetDateTime = LocalDateTime.now().plusDays(1)
                 }
             }) {
-                Text("Add")
+                AutoResizedText(text = "Add")
             }
         }
 
@@ -325,19 +390,19 @@ fun TaskItem(
                 onCheckedChange = { onToggle() }
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                AutoResizedText(
                     text = task.title,
                     textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 if (task.description.isNotBlank()) {
-                    Text(
+                    AutoResizedText(
                         text = task.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Text(
+                AutoResizedText(
                     text = "Target: ${task.targetDateTime.format(dateTimeFormatter)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -365,7 +430,7 @@ fun PriorityBadge(priority: Priority) {
         contentColor = contentColor,
         shape = MaterialTheme.shapes.small
     ) {
-        Text(
+        AutoResizedText(
             text = priority.name.lowercase().replaceFirstChar { it.uppercase() },
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
