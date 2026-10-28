@@ -24,7 +24,7 @@ enum class ThemeOption(val displayName: String) {
 }
 
 class Task(
-    val id: UUID = UUID.randomUUID(),
+    val id: String = UUID.randomUUID().toString(),
     title: String,
     description: String = "",
     isCompleted: Boolean = false,
