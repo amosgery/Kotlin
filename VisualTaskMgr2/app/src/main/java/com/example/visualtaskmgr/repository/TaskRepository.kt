@@ -2,7 +2,6 @@ package com.example.visualtaskmgr.repository
 
 import com.example.visualtaskmgr.model.Priority
 import com.example.visualtaskmgr.model.Task
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import java.time.LocalDateTime
@@ -26,49 +25,13 @@ class TaskRepository {
             if (snapshot == null) return@addSnapshotListener
 
             val tasksList = snapshot.documents.mapNotNull { doc ->
-                convertToTask(doc)
+                if (doc.contains("title")) Task(doc) else null
             }
 
             onSuccess(tasksList)
         }
     }
 
-    fun convertToTask(doc: DocumentSnapshot) : Task?
-    {
-        try {
-            val idString = doc.id
-            val title = doc.getString("title") ?: return null
-            val description = doc.getString("description") ?: ""
-            val isCompleted = doc.getBoolean("isCompleted") ?: false
-            val priorityString = doc.getString("priority") ?: Priority.MEDIUM.name
-            val priority = try {
-                Priority.valueOf(priorityString)
-            } catch (e: Exception) {
-                Priority.MEDIUM
-            }
-            val targetDateTimeString = doc.getString("targetDateTime")
-            val targetDateTime = if (!targetDateTimeString.isNullOrEmpty()) {
-                try {
-                    LocalDateTime.parse(targetDateTimeString)
-                } catch (e: Exception) {
-                    LocalDateTime.now().plusDays(1)
-                }
-            } else {
-                LocalDateTime.now().plusDays(1)
-            }
-
-            return Task(
-                id = idString,
-                title = title,
-                description = description,
-                isCompleted = isCompleted,
-                priority = priority,
-                targetDateTime = targetDateTime
-            )
-        } catch (e: Exception) {
-            return null
-        }
-    }
     /**
      * One-time fetch of tasks from Firestore.
      */
@@ -76,7 +39,7 @@ class TaskRepository {
         tasksCollection.get()
             .addOnSuccessListener { snapshot ->
                 val tasksList = snapshot.documents.mapNotNull { doc ->
-                    convertToTask(doc)
+                    if (doc.contains("title")) Task(doc) else null
                 }
                 onSuccess(tasksList)
             }
@@ -94,30 +57,20 @@ class TaskRepository {
         priority: Priority = Priority.MEDIUM,
         targetDateTime: LocalDateTime = LocalDateTime.now().plusDays(1)
     ) {
-        val taskData = mapOf(
-            "title" to title,
-            "description" to description,
-            "isCompleted" to false,
-            "priority" to priority.name,
-            "targetDateTime" to targetDateTime.toString()
+        val newTask = Task(
+            title = title,
+            description = description,
+            priority = priority,
+            targetDateTime = targetDateTime
         )
-
-        tasksCollection.add(taskData)
+        tasksCollection.add(newTask.toMap())
     }
 
     /**
      * Saves or updates an existing task in Firestore by document ID.
      */
     fun saveTask(task: Task) {
-        val taskData = mapOf(
-            "title" to task.title,
-            "description" to task.description,
-            "isCompleted" to task.isCompleted,
-            "priority" to task.priority.name,
-            "targetDateTime" to task.targetDateTime.toString()
-        )
-
-        tasksCollection.document(task.id).set(taskData)
+        tasksCollection.document(task.id).set(task.toMap())
     }
 
     /**

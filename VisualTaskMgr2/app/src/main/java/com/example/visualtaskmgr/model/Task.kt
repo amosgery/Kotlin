@@ -3,6 +3,7 @@ package com.example.visualtaskmgr.model
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.google.firebase.firestore.DocumentSnapshot
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -36,4 +37,41 @@ class Task(
     var isCompleted by mutableStateOf(isCompleted)
     var priority by mutableStateOf(priority)
     var targetDateTime by mutableStateOf(targetDateTime)
+
+    /**
+     * Secondary constructor that constructs a Task directly from a Firestore DocumentSnapshot.
+     */
+    constructor(doc: DocumentSnapshot) : this(
+        id = doc.id,
+        title = doc.getString("title") ?: "",
+        description = doc.getString("description") ?: "",
+        isCompleted = doc.getBoolean("isCompleted") ?: false,
+        priority = doc.getString("priority")?.let {
+            try {
+                Priority.valueOf(it)
+            } catch (e: Exception) {
+                Priority.MEDIUM
+            }
+        } ?: Priority.MEDIUM,
+        targetDateTime = doc.getString("targetDateTime")?.let {
+            try {
+                LocalDateTime.parse(it)
+            } catch (e: Exception) {
+                LocalDateTime.now().plusDays(1)
+            }
+        } ?: LocalDateTime.now().plusDays(1)
+    )
+
+    /**
+     * Converts the Task fields into a Map for Firestore persistence.
+     */
+    fun toMap(): Map<String, Any> {
+        return mapOf(
+            "title" to title,
+            "description" to description,
+            "isCompleted" to isCompleted,
+            "priority" to priority.name,
+            "targetDateTime" to targetDateTime.toString()
+        )
+    }
 }
