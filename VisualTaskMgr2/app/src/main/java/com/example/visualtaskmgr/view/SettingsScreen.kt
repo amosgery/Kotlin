@@ -19,14 +19,20 @@ import com.example.visualtaskmgr.view.theme.VisualTaskMgrTheme
 import com.example.visualtaskmgr.viewmodel.TaskViewModel
 
 @Composable
-fun SettingsScreen(viewModel: TaskViewModel = viewModel()) {
+fun SettingsScreen(
+    viewModel: TaskViewModel = viewModel(),
+    userEmail: String? = null,
+    onSignOut: () -> Unit = {}
+) {
     SettingsScreenContent(
         themeOption = viewModel.themeOption,
         sortOption = viewModel.sortOption,
+        userEmail = userEmail,
         onThemeOptionSelected = { viewModel.themeOption = it },
         onSortOptionSelected = { viewModel.sortOption = it },
         onClearAllTasks = { viewModel.clearAllTasks() },
-        onResetSettings = { viewModel.resetSettings() }
+        onResetSettings = { viewModel.resetSettings() },
+        onSignOut = onSignOut
     )
 }
 
@@ -34,10 +40,12 @@ fun SettingsScreen(viewModel: TaskViewModel = viewModel()) {
 fun SettingsScreenContent(
     themeOption: ThemeOption,
     sortOption: SortOption,
+    userEmail: String? = null,
     onThemeOptionSelected: (ThemeOption) -> Unit = {},
     onSortOptionSelected: (SortOption) -> Unit = {},
     onClearAllTasks: () -> Unit = {},
-    onResetSettings: () -> Unit = {}
+    onResetSettings: () -> Unit = {},
+    onSignOut: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showClearTasksDialog by remember { mutableStateOf(false) }
@@ -103,6 +111,36 @@ fun SettingsScreenContent(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
+
+        // Section 0: User Account & Sign Out
+        if (userEmail != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "חשבון משתמש",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = "מחובר כ: $userEmail",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    OutlinedButton(
+                        onClick = onSignOut,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("התנתק (Sign Out)")
+                    }
+                }
+            }
+        }
 
         // Section 1: Display / Theme
         Card(
@@ -213,7 +251,8 @@ fun SettingsScreenPreview() {
         Surface {
             SettingsScreenContent(
                 themeOption = ThemeOption.SYSTEM,
-                sortOption = SortOption.DEFAULT
+                sortOption = SortOption.DEFAULT,
+                userEmail = "user@example.com"
             )
         }
     }
